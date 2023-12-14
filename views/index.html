@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h2>Appointment Booking App</h2>
+    <p><b>Note - </b>now, instead of storing the data on CRUD CRUD we will use mySql as a backend.</p>
+    <form action="">
+        <label for="name">Name:</label>
+        <input type="text" id="name">
+        <label for="email">Email:</label>
+        <input type="email" id="email">
+        <label for="phone">Phone Number:</label>
+        <input type="text" id="phone">
+        <input type="submit" id="btn">
+
+        <ul id="lists">
+        </ul>
+
+    </form>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        var ul = document.getElementById('lists');
+        var submit = document.getElementById('btn');
+
+        submit.addEventListener('click', onSubmit);
+        function onSubmit(e) {
+            e.preventDefault();
+            var name = document.getElementById('name');
+            var email = document.getElementById('email');
+            var phone = document.getElementById('phone');
+
+            let myObj = {
+                name: name.value,
+                email: email.value,
+                phone: phone.value
+            }
+
+            axios.post('http://localhost:3000/user/add-user', myObj)
+                .then(response => {
+                    // console.log(response);
+                    showDataOnScreen(response.data.newUserDetail);
+                })
+                .catch((err) => {
+                    document.body.innerHTML = document.body.innerHTML + '<h4> Something wrong </h4>';
+                    console.log(err);
+                })
+
+            name.value = '';
+            email.value = '';
+            phone.value = '';
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            axios.get('http://localhost:3000/user/get-users')
+                .then(response => {
+                    for (var i = 0; i < response.data.allUsers.length; i++) {
+                        showDataOnScreen(response.data.allUsers[i])
+                        // console.log(response.data.allUsers[i]);
+                    }
+                })
+                .catch(err => console.error(err));
+        })
+
+        function showDataOnScreen(user) {
+            const childHTML = `<li id="${user.id}">  ${user.name} - ${user.email} - ${user.phone_number} - <button onclick="deleteUser('${user.id}')"> Delete </button>
+            <button onclick="editUser('${user.name}','${user.email}','${user.phone_number}','${user.id}')"> Edit </button>  </li>`;
+            ul.innerHTML = ul.innerHTML + childHTML;
+        }
+
+
+        function editUser(name, email, number, userid) {
+            console.log("edit function");
+            document.getElementById('email').value = email;
+            document.getElementById('name').value = name;
+            document.getElementById('phone').value = number;
+            event.preventDefault();
+            deleteUser(userid);
+        }
+
+        function deleteUser(userId) {
+            console.log("deleted");
+            axios.delete(`http://localhost:3000/user/delete-user/${userId}`)
+                .then((response) => {
+                    removeUserfromScreen(userId);
+                })
+                .catch((err) => {
+                    console.log(err);
+                })
+
+            event.preventDefault();
+        }
+
+        function removeUserfromScreen(userId) {
+            const childNodeToBeDeleted = document.getElementById(userId);
+            if (childNodeToBeDeleted)
+                ul.removeChild(childNodeToBeDeleted);
+        }
+
+    </script>
+</body>
+
+</html>
